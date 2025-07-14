@@ -9,3 +9,20 @@ h1 {
     height: 100%;
     margin-top: 2rem;
 }
+
+.tag-container {
+    display: flex;
+    gap: 1.5rem;
+    flex-direction: row;
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+}
+
+.tag-container>.tag {
+    transition: background-color 0.3s ease;
+    cursor: pointer;
+}
+
+.tag-container>.tag:hover {
+    background-color: var(--secondary-700);
+}
