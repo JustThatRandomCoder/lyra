@@ -1,0 +1,233 @@
+:root {
+  @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap');
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: light dark;
+  color: var(--text);
+  background-color: var(--background);
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  /* Color variables */
+  --text: #f5f1f0;
+  --background: #070403;
+  --primary: #ddaa92;
+  --secondary: #8a3d1b;
+  --accent: #eb5f1f;
+
+  /* Color shades */
+  --text-50: #f5f1f0;
+  --text-100: #ebe2e0;
+  --text-200: #d6c6c2;
+  --text-300: #c2a9a3;
+  --text-400: #ad8d85;
+  --text-500: #997066;
+  --text-600: #7a5a52;
+  --text-700: #5c433d;
+  --text-800: #3d2d29;
+  --text-900: #1f1614;
+  --text-950: #0f0b0a;
+
+  --background-50: #f7f0ed;
+  --background-100: #f0e0db;
+  --background-200: #e0c2b8;
+  --background-300: #d1a394;
+  --background-400: #c28570;
+  --background-500: #b3664d;
+  --background-600: #8f523d;
+  --background-700: #6b3d2e;
+  --background-800: #47291f;
+  --background-900: #24140f;
+  --background-950: #120a08;
+
+  --primary-50: #f9f0ec;
+  --primary-100: #f3e1d8;
+  --primary-200: #e7c2b1;
+  --primary-300: #daa48b;
+  --primary-400: #ce8664;
+  --primary-500: #c2673d;
+  --primary-600: #9b5331;
+  --primary-700: #743e25;
+  --primary-800: #4e2918;
+  --primary-900: #27150c;
+  --primary-950: #130a06;
+
+  --secondary-50: #fbefea;
+  --secondary-100: #f7dfd4;
+  --secondary-200: #eebeaa;
+  --secondary-300: #e69e7f;
+  --secondary-400: #dd7e55;
+  --secondary-500: #d55d2a;
+  --secondary-600: #aa4b22;
+  --secondary-700: #803819;
+  --secondary-800: #552511;
+  --secondary-900: #2b1308;
+  --secondary-950: #150904;
+
+  --accent-50: #fdeee8;
+  --accent-100: #fbded0;
+  --accent-200: #f7bca1;
+  --accent-300: #f39b72;
+  --accent-400: #ef7a43;
+  --accent-500: #eb5814;
+  --accent-600: #bc4710;
+  --accent-700: #8d350c;
+  --accent-800: #5e2308;
+  --accent-900: #2f1204;
+  --accent-950: #170902;
+}
+
+.inter {
+  font-family: "Inter", sans-serif;
+  font-optical-sizing: auto;
+  font-style: normal;
+}
+
+.noto-sans {
+  font-family: "Noto Sans", sans-serif;
+  font-optical-sizing: auto;
+  font-style: normal;
+  font-variation-settings:
+    "wdth" 100;
+}
+
+#root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  width: 100%;
+  max-width: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+body {
+  position: relative;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: flex;
+  width: 100% !important;
+  background: linear-gradient(to bottom,
+      var(--secondary-900) 0%,
+      var(--background) 100%);
+}
+
+main {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 3rem;
+  flex: 1 1 auto;
+}
+
+h1 {
+  font-size: 4.5vw;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--text-200);
+  margin: 0;
+  padding: 0;
+}
+
+.btn-container {
+  width: 100%;
+  margin-top: auto;
+}
+
+button {
+  font-weight: 400;
+  font-size: 1.5rem;
+  text-align: center;
+  justify-content: center;
+  display: flex;
+  align-items: center;
+  color: var(--text);
+  width: 100%;
+  padding: 1.5rem;
+  border-radius: 10px;
+  border: none;
+  background: linear-gradient(90deg, var(--primary-700), var(--primary-900));
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+  transition: background 0.18s cubic-bezier(.4, 1.6, .6, 1),
+    transform 0.13s cubic-bezier(.4, 1.6, .6, 1);
+  will-change: transform,
+    background;
+  cursor: pointer;
+}
+
+button::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  padding: 2px;
+  border-radius: 10px;
+  background: linear-gradient(90deg, var(--accent-500), var(--accent-700));
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  z-index: 2;
+  transition: background 0.3 ease;
+}
+
+button:hover::before,
+button:focus-visible::before {
+  background: linear-gradient(90deg, var(--accent-400), var(--accent-600));
+}
+
+.input-gradient-border {
+  display: flex;
+  width: 100%;
+  max-width: 35rem;
+  padding: 2px;
+  border-radius: 14px;
+  background: linear-gradient(90deg, var(--accent-700), var(--accent-800));
+  margin-bottom: 1.5rem;
+}
+
+input {
+  font-weight: 400;
+  font-size: 1.2rem;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  color: var(--text);
+  width: 100%;
+  max-width: 35rem;
+  padding: 1.7rem;
+  border-radius: 12px;
+  border: none;
+  background: linear-gradient(90deg, var(--primary-800), var(--primary-900));
+  outline: none;
+  transition: background 0.18s cubic-bezier(.4, 1.6, .6, 1),
+    transform 0.13s cubic-bezier(.4, 1.6, .6, 1);
+}
+
+input::placeholder {
+  color: var(--text-300);
+  opacity: 1;
+}
+
+.tag {
+  background-color: var(--secondary-800);
+  width: fit-content;
+  padding: 0.5rem 1rem;
+  border-radius: 2rem;
+  display: flex;
+  flex-direction: row;
+  gap: 0.5rem;
+  font-weight: 500;
+  align-items: center;
+  justify-content: center;
+  ;
+}
