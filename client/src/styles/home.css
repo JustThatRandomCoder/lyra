@@ -16,6 +16,8 @@ h1 {
     flex-direction: row;
     margin-top: 2rem;
     margin-bottom: 2rem;
+    display: flex;
+    flex-wrap: wrap;
 }
 
 .tag-container>.tag {
