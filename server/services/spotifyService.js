@@ -63,4 +63,58 @@ const exchangeCodeAndCreatePlaylist = async (req, res) => {
     }
 };
 
-module.exports = { exchangeCodeAndCreatePlaylist };
+const generatePlaylist = async (req, res) => {
+    const { usecase, genre, mood, artists, length } = req.body;
+
+    try {
+        // Get client credentials access token
+        const tokenResponse = await axios.post(
+            'https://accounts.spotify.com/api/token',
+            qs.stringify({
+                grant_type: 'client_credentials',
+                client_id: process.env.SPOTIFY_CLIENT_ID,
+                client_secret: process.env.SPOTIFY_CLIENT_SECRET,
+            }),
+            {
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            }
+        );
+
+        const { access_token } = tokenResponse.data;
+
+        // Create a better search query that works with Spotify's search API
+        // Combine artists with genre and mood keywords
+        const searchTerms = [artists, ...genre, ...mood].filter(term => term && term.trim());
+        const searchQuery = searchTerms.join(' ');
+
+        console.log('Search query:', searchQuery);
+
+        const searchResponse = await axios.get(
+            `https://api.spotify.com/v1/search?q=${encodeURIComponent(searchQuery)}&type=track&limit=20`,
+            {
+                headers: { Authorization: `Bearer ${access_token}` },
+            }
+        );
+
+        const tracks = searchResponse.data.tracks.items;
+
+        console.log(`Found ${tracks.length} tracks`);
+
+        // For now, return track information
+        res.json({
+            message: 'Playlist generated successfully',
+            criteria: { usecase, genre, mood, artists, length },
+            searchQuery: searchQuery,
+            tracks: tracks.map(track => ({
+                name: track.name,
+                artist: track.artists[0].name,
+                spotify_url: track.external_urls.spotify
+            }))
+        });
+    } catch (error) {
+        console.error('Error generating playlist:', error.response?.data || error.message);
+        res.status(500).json({ error: 'Failed to generate playlist' });
+    }
+};
+
+module.exports = { exchangeCodeAndCreatePlaylist, generatePlaylist };

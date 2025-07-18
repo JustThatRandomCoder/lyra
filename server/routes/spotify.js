@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const { exchangeCodeAndCreatePlaylist } = require('../services/spotifyService');
+const { exchangeCodeAndCreatePlaylist, generatePlaylist } = require('../services/spotifyService');
 
 router.post('/token', exchangeCodeAndCreatePlaylist);
+router.post('/generate-playlist', generatePlaylist);
 
 module.exports = router;

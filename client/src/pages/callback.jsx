@@ -9,7 +9,7 @@ function Callback() {
         const code = urlParams.get('code');
 
         if (code) {
-            fetch('http://localhost:3000/api/spotify/token', {
+            fetch('/api/spotify/token', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ code }),

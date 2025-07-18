@@ -147,6 +147,7 @@ function Home() {
         if (!isFormValid()) return;
 
         const payload = {
+            usecase: usecase.trim(),
             genre: selectedGenres,
             mood: selectedMoods,
             artists: artists.trim(),
@@ -154,18 +155,29 @@ function Home() {
         };
 
         try {
-            const res = await fetch('http://localhost:3000/api/spotify/generate-playlist', {
+            const res = await fetch('/api/spotify/generate-playlist', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
 
-            const { playlistUrl, tracks } = await res.json();
-            console.log("🎧 Deine Playlist-Suche:", playlistUrl);
-            console.log("🔊 Gefundene Tracks:", tracks);
+            console.log('Response status:', res.status);
+            console.log('Response headers:', res.headers);
+
+            if (!res.ok) {
+                const errorText = await res.text();
+                console.error('Error response:', errorText);
+                throw new Error(`HTTP ${res.status}: ${errorText}`);
+            }
+
+            const data = await res.json();
+            console.log("🎧 Deine Playlist-Suche:", data);
+            console.log("🔊 Gefundene Tracks:", data.tracks);
 
             // Optional: Du kannst ein Fenster öffnen
-            window.open(playlistUrl, '_blank');
+            if (data.playlistUrl) {
+                window.open(data.playlistUrl, '_blank');
+            }
         } catch (err) {
             console.error("❌ Fehler beim Suchen:", err);
         }

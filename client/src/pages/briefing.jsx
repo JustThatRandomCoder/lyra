@@ -20,7 +20,7 @@ function Briefing() {
 
     const handleLogin = () => {
         const clientId = '8c7919a341b645e6883365a40f88a1a3'; // Replace with your real client ID
-        const redirectUri = 'http://172.20.10.3:5173/callback'; // Your redirect URI
+        const redirectUri = 'https://1664e4cfd8bc.ngrok-free.app/callback'; // Your redirect URI
         const scopes = [
             'playlist-modify-public',
             'playlist-modify-private',
@@ -28,6 +28,11 @@ function Briefing() {
         ];
 
         const authUrl = `https://accounts.spotify.com/authorize?response_type=code&client_id=${clientId}&scope=${encodeURIComponent(scopes.join(' '))}&redirect_uri=${encodeURIComponent(redirectUri)}`;
+
+        console.log('Redirect URI:', redirectUri);
+        console.log('Encoded Redirect URI:', encodeURIComponent(redirectUri));
+        console.log('Full Auth URL:', authUrl);
+
         window.location.href = authUrl;
     };
 
