@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion'
 import '../styles/home.css';
 
@@ -70,6 +70,24 @@ function Home() {
     const [selectedTag, setSelectedTag] = useState(null);
     const [selectedGenres, setSelectedGenres] = useState([]);
     const [selectedMoods, setSelectedMoods] = useState([]);
+    const [artists, setArtists] = useState('');
+    const [length, setLength] = useState('');
+    const [showTopGradient, setShowTopGradient] = useState(false);
+    const [showBottomGradient, setShowBottomGradient] = useState(true);
+
+    useEffect(() => {
+        const handleScroll = () => {
+            const scrollTop = window.scrollY || document.documentElement.scrollTop;
+            const scrollHeight = document.documentElement.scrollHeight;
+            const clientHeight = window.innerHeight;
+
+            setShowTopGradient(scrollTop > 0);
+            setShowBottomGradient(scrollTop + clientHeight < scrollHeight);
+        };
+
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
 
     const handleTagClick = (idx, text) => {
         setUsecase(text);
@@ -109,10 +127,57 @@ function Home() {
         return selectedMoods.includes(moodValue);
     };
 
+    const handleArtistsChange = (e) => {
+        setArtists(e.target.value);
+    };
+
+    const handleLengthChange = (e) => {
+        setLength(e.target.value);
+    };
+
+    const isFormValid = () => {
+        return usecase.trim() !== '' &&
+            selectedGenres.length > 0 &&
+            selectedMoods.length > 0 &&
+            artists.trim() !== '' &&
+            length.trim() !== '';
+    };
+
+    const handleNextClick = async () => {
+        if (!isFormValid()) return;
+
+        const payload = {
+            genre: selectedGenres,
+            mood: selectedMoods,
+            artists: artists.trim(),
+            length: length.trim()
+        };
+
+        try {
+            const res = await fetch('http://localhost:3000/api/spotify/generate-playlist', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const { playlistUrl, tracks } = await res.json();
+            console.log("🎧 Deine Playlist-Suche:", playlistUrl);
+            console.log("🔊 Gefundene Tracks:", tracks);
+
+            // Optional: Du kannst ein Fenster öffnen
+            window.open(playlistUrl, '_blank');
+        } catch (err) {
+            console.error("❌ Fehler beim Suchen:", err);
+        }
+    };
+
+
+
 
 
     return (
         <main>
+            <div className={`gradient-top ${showTopGradient ? 'visible' : ''}`}></div>
             <motion.h1
                 className='headline'
                 initial={{ opacity: 0, y: 30 }}
@@ -255,6 +320,28 @@ function Home() {
                         value={selectedMoods.join(',')}
                     />
                 </motion.div>
+                <motion.div className="input-row" variants={tagVariants}>
+                    <motion.div className="input-gradient-border" variants={tagVariants}>
+                        <motion.input
+                            placeholder="What artists do you prefer?"
+                            value={artists}
+                            onChange={handleArtistsChange}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.1, duration: 0.4 }}
+                        />
+                    </motion.div>
+                    <motion.div className="input-gradient-border" variants={tagVariants}>
+                        <motion.input
+                            placeholder="How long should the playlist be?"
+                            value={length}
+                            onChange={handleLengthChange}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.1, duration: 0.4 }}
+                        />
+                    </motion.div>
+                </motion.div>
             </motion.div>
             <motion.div
                 className="btn-container"
@@ -263,17 +350,27 @@ function Home() {
                 transition={{ delay: 0.4, duration: 0.4 }}
             >
                 <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.97 }}
+                    whileHover={isFormValid() ? { scale: 1.02 } : {}}
+                    whileTap={isFormValid() ? { scale: 0.97 } : {}}
                     transition={{
                         type: "spring",
                         stiffness: 400,
                         damping: 22
                     }}
+                    disabled={!isFormValid()}
+                    onClick={handleNextClick}
+                    animate={{
+                        opacity: isFormValid() ? 1 : 0.5
+                    }}
+                    style={{
+                        cursor: isFormValid() ? 'pointer' : 'not-allowed'
+                    }}
+                    initial={false}
                 >
                     Next
                 </motion.button>
             </motion.div>
+            <div className={`gradient ${showBottomGradient ? 'visible' : ''}`}></div>
         </main>
     )
 }

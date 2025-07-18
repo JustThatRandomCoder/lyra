@@ -7,24 +7,38 @@ const sectionVariants = {
     initial: { opacity: 0, y: 40 },
     animate: { opacity: 1, y: 0, transition: { staggerChildren: 0.15, delayChildren: 0.1 } },
     exit: { opacity: 0, y: -40, transition: { duration: 0.4 } }
-}
+};
 
 const childVariants = {
     initial: { opacity: 0, y: 20 },
     animate: { opacity: 1, y: 0, transition: { duration: 0.5 } }
-}
+};
 
 function Briefing() {
-    const [step, setStep] = useState(0)
-    const navigate = useNavigate()
+    const [step, setStep] = useState(0);
+    const navigate = useNavigate();
+
+    const handleLogin = () => {
+        const clientId = '8c7919a341b645e6883365a40f88a1a3'; // Replace with your real client ID
+        const redirectUri = 'http://172.20.10.3:5173/callback'; // Your redirect URI
+        const scopes = [
+            'playlist-modify-public',
+            'playlist-modify-private',
+            'user-read-private'
+        ];
+
+        const authUrl = `https://accounts.spotify.com/authorize?response_type=code&client_id=${clientId}&scope=${encodeURIComponent(scopes.join(' '))}&redirect_uri=${encodeURIComponent(redirectUri)}`;
+        window.location.href = authUrl;
+    };
 
     const handleNext = () => {
         if (step < 2) {
-            setStep(s => s + 1)
+            setStep(s => s + 1);
         } else {
-            navigate('/home')
+            // Step 2 = Spotify login step
+            handleLogin();
         }
-    }
+    };
 
     return (
         <main>
@@ -89,28 +103,17 @@ function Briefing() {
                 </AnimatePresence>
             </div>
             <div className="btn-container">
-                {step === 2 && (
-                    <motion.button
-                        className="skip-btn"
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.97 }}
-                        transition={{ type: "spring", stiffness: 400, damping: 22 }}
-                        onClick={() => navigate('/home')}
-                    >
-                        Skip
-                    </motion.button>
-                )}
                 <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.97 }}
                     transition={{ type: "spring", stiffness: 400, damping: 22 }}
                     onClick={handleNext}
                 >
-                    Next
+                    {step === 2 ? 'Connect to Spotify' : 'Next'}
                 </motion.button>
             </div>
         </main>
-    )
+    );
 }
 
-export default Briefing
+export default Briefing;
