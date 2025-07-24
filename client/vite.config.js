@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react-swc'
+import { NGROK_HOSTNAME } from './vite.config.constants.js'
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -7,7 +8,7 @@ export default defineConfig({
   server: {
     host: '0.0.0.0', // Allow external connections
     port: 5173,
-    allowedHosts: ['1664e4cfd8bc.ngrok-free.app'],
+    allowedHosts: [NGROK_HOSTNAME],
     proxy: {
       '/api': {
         target: 'http://localhost:3000',

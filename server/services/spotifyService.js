@@ -1,5 +1,6 @@
 const axios = require('axios');
 const qs = require('qs');
+const { SPOTIFY_REDIRECT_URI } = require('../config');
 
 const exchangeCodeAndCreatePlaylist = async (req, res) => {
     const { code } = req.body;
@@ -11,7 +12,7 @@ const exchangeCodeAndCreatePlaylist = async (req, res) => {
             qs.stringify({
                 grant_type: 'authorization_code',
                 code,
-                redirect_uri: process.env.SPOTIFY_REDIRECT_URI,
+                redirect_uri: SPOTIFY_REDIRECT_URI,
                 client_id: process.env.SPOTIFY_CLIENT_ID,
                 client_secret: process.env.SPOTIFY_CLIENT_SECRET,
             }),

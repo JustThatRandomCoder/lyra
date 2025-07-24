@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
+import { SPOTIFY_REDIRECT_URI } from '../config'
 import '../styles/briefing.css';
 
 const sectionVariants = {
@@ -20,7 +21,7 @@ function Briefing() {
 
     const handleLogin = () => {
         const clientId = '8c7919a341b645e6883365a40f88a1a3'; // Replace with your real client ID
-        const redirectUri = 'https://1664e4cfd8bc.ngrok-free.app/callback'; // Your redirect URI
+        const redirectUri = SPOTIFY_REDIRECT_URI; // Now using config
         const scopes = [
             'playlist-modify-public',
             'playlist-modify-private',

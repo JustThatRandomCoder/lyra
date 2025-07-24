@@ -59,7 +59,20 @@ function Playlist() {
                                 <span>⏱️</span><span>65 Minutes</span>
                             </div>
                         </div>
-                        <div className="tag add"><span>💿</span><span>Add to Spotify</span></div>
+                        <button className="tag add"><span>💿</span><span>Add to Spotify</span></button>
+                    </div>
+                </div>
+                <div className="song-container">
+                    <div className="song-outer" id='song'>
+                        <div className="song-inner">
+                            <div className="cover"></div>
+                            <div className="song-data">
+                                <div className="title">Enter Sandman</div>
+                                <div className="artist">Metallica</div>
+                            </div>
+                            <div className="duration">5:30</div>
+                        </div>
+                        <hr />
                     </div>
                 </div>
             </motion.div>
