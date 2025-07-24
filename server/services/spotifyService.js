@@ -53,15 +53,41 @@ const generatePlaylist = async (req, res) => {
 
         const { access_token } = tokenResponse.data;
 
+        // Calculate desired number of tracks based on length
+        const getTrackLimit = (length) => {
+            if (!length || length.trim() === '') return 20; // Default
+
+            const lengthLower = length.toLowerCase();
+            if (lengthLower.includes('short') || lengthLower.includes('quick')) return 10;
+            if (lengthLower.includes('long') || lengthLower.includes('extended')) return 40;
+            if (lengthLower.includes('medium') || lengthLower.includes('normal')) return 20;
+
+            // Try to extract minutes if specified
+            const minuteMatch = lengthLower.match(/(\d+)\s*(min|minute)/);
+            if (minuteMatch) {
+                const minutes = parseInt(minuteMatch[1]);
+                return Math.max(5, Math.min(50, Math.round(minutes / 3))); // Roughly 3 minutes per song
+            }
+
+            return 20; // Default fallback
+        };
+
+        const trackLimit = getTrackLimit(length);
+
         // Create a better search query that works with Spotify's search API
-        // Combine artists with genre and mood keywords
-        const searchTerms = [artists, ...genre, ...mood].filter(term => term && term.trim());
-        const searchQuery = searchTerms.join(' ');
+        // Artists are now optional
+        const searchTerms = [...genre, ...mood];
+        if (artists && artists.trim()) {
+            searchTerms.push(artists.trim());
+        }
+
+        const searchQuery = searchTerms.filter(term => term && term.trim()).join(' ');
 
         console.log('Search query:', searchQuery);
+        console.log('Track limit:', trackLimit);
 
         const searchResponse = await axios.get(
-            `https://api.spotify.com/v1/search?q=${encodeURIComponent(searchQuery)}&type=track&limit=20`,
+            `https://api.spotify.com/v1/search?q=${encodeURIComponent(searchQuery)}&type=track&limit=${trackLimit}`,
             {
                 headers: { Authorization: `Bearer ${access_token}` },
             }

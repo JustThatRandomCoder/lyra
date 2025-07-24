@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import '../styles/playlist.css';
 
@@ -18,12 +18,54 @@ const songVariants = {
     animate: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 400, damping: 30 } }
 };
 
+const headerVariants = {
+    initial: { opacity: 0, scale: 0.95 },
+    animate: {
+        opacity: 1,
+        scale: 1,
+        transition: {
+            type: "spring",
+            stiffness: 300,
+            damping: 30,
+            delay: 0.1
+        }
+    }
+};
+
+const overlayVariants = {
+    initial: { opacity: 0 },
+    animate: { opacity: 1 },
+    exit: { opacity: 0 }
+};
+
+const notificationVariants = {
+    initial: { opacity: 0, scale: 0.8, y: 50 },
+    animate: {
+        opacity: 1,
+        scale: 1,
+        y: 0,
+        transition: {
+            type: "spring",
+            stiffness: 500,
+            damping: 30
+        }
+    },
+    exit: {
+        opacity: 0,
+        scale: 0.8,
+        y: 50,
+        transition: { duration: 0.2 }
+    }
+};
+
 function Playlist() {
     const navigate = useNavigate();
     const [showTopGradient, setShowTopGradient] = useState(false);
     const [showBottomGradient, setShowBottomGradient] = useState(true);
     const [playlistData, setPlaylistData] = useState(null);
     const [isCreatingPlaylist, setIsCreatingPlaylist] = useState(false);
+    const [notification, setNotification] = useState(null);
+    const [playlistAdded, setPlaylistAdded] = useState(false);
 
     useEffect(() => {
         // Load playlist data from localStorage
@@ -48,17 +90,22 @@ function Playlist() {
         return () => window.removeEventListener('scroll', handleScroll);
     }, [navigate]);
 
+    const showNotification = (type, message) => {
+        setNotification({ type, message });
+        setTimeout(() => setNotification(null), 4000);
+    };
+
     const handleAddToSpotify = async () => {
         const accessToken = localStorage.getItem('spotify_access_token');
 
         if (!accessToken) {
-            alert('Please connect to Spotify first');
-            navigate('/');
+            showNotification('error', 'Please connect to Spotify first');
+            setTimeout(() => navigate('/'), 2000);
             return;
         }
 
         if (!playlistData) {
-            alert('No playlist data available');
+            showNotification('error', 'No playlist data available');
             return;
         }
 
@@ -81,32 +128,62 @@ function Playlist() {
 
             const data = await response.json();
 
+            // Mark playlist as successfully added
+            setPlaylistAdded(true);
+
+            // Show success notification
+            showNotification('success', 'Playlist created successfully! 🎉');
+
             // Open Spotify playlist in new tab
             if (data.playlistUrl) {
-                window.open(data.playlistUrl, '_blank');
+                setTimeout(() => {
+                    window.open(data.playlistUrl, '_blank');
+                }, 1000);
             }
 
-            // Clear stored data
+            // Clear stored data after successful creation
             localStorage.removeItem('generatedPlaylist');
-
-            alert('Playlist created successfully and added to your Spotify library!');
-            navigate('/home');
 
         } catch (error) {
             console.error('Error creating playlist:', error);
-            alert('Failed to create playlist. Please try again.');
+            showNotification('error', 'Failed to create playlist. Please try again.');
         } finally {
             setIsCreatingPlaylist(false);
         }
     };
 
+    const handleBackToHome = () => {
+        navigate('/home');
+    };
+
     if (!playlistData) {
-        return <div>Loading...</div>;
+        return (
+            <motion.div
+                className="loading-container"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+            >
+                <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                    className="loading-spinner"
+                >
+                    🎵
+                </motion.div>
+                <p>Loading your playlist...</p>
+            </motion.div>
+        );
     }
 
     return (
         <main>
-            <div className={`gradient-top ${showTopGradient ? 'visible' : ''}`}></div>
+            <motion.div
+                className={`gradient-top ${showTopGradient ? 'visible' : ''}`}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: showTopGradient ? 0.7 : 0 }}
+                transition={{ duration: 0.3 }}
+            />
+
             <motion.h1
                 className='headline'
                 initial={{ opacity: 0, y: 30 }}
@@ -115,15 +192,23 @@ function Playlist() {
             >
                 Your Playlist
             </motion.h1>
+
             <motion.div
                 className='container'
                 initial="initial"
                 animate="animate"
                 variants={containerVariants}
             >
-                <div className="playlist-header">
-                    <div
+                <motion.div
+                    className="playlist-header"
+                    variants={headerVariants}
+                    initial="initial"
+                    animate="animate"
+                >
+                    <motion.div
                         className="cover"
+                        whileHover={{ scale: 1.02 }}
+                        transition={{ type: "spring", stiffness: 400, damping: 30 }}
                         style={{
                             backgroundImage: playlistData.tracks[0]?.cover_url ?
                                 `url(${playlistData.tracks[0].cover_url})` :
@@ -131,28 +216,99 @@ function Playlist() {
                             backgroundSize: 'cover',
                             backgroundPosition: 'center'
                         }}
-                    ></div>
-                    <div className="information-container">
-                        <div className="title">{playlistData.playlistName}</div>
-                        <div className="general">
-                            <div className="tag">
-                                <span>🎧</span><span>{playlistData.totalTracks} Songs</span>
-                            </div>
-                            <div className="tag">
-                                <span>⏱️</span><span>{playlistData.totalDuration} Minutes</span>
-                            </div>
-                        </div>
-                        <button
-                            className="tag add"
-                            onClick={handleAddToSpotify}
-                            disabled={isCreatingPlaylist}
+                    />
+
+                    <motion.div
+                        className="information-container"
+                        initial={{ opacity: 0, x: 30 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.3, duration: 0.6 }}
+                    >
+                        <motion.div
+                            className="title"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.4, duration: 0.5 }}
                         >
-                            <span>💿</span>
-                            <span>{isCreatingPlaylist ? 'Creating...' : 'Add to Spotify'}</span>
-                        </button>
-                    </div>
-                </div>
-                <div className="song-container">
+                            {playlistData.playlistName}
+                        </motion.div>
+
+                        <motion.div
+                            className="general"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.5, duration: 0.5 }}
+                        >
+                            <motion.div
+                                className="tag"
+                                whileHover={{ scale: 1.05 }}
+                                transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                            >
+                                <span>🎧</span><span>{playlistData.totalTracks} Songs</span>
+                            </motion.div>
+                            <motion.div
+                                className="tag"
+                                whileHover={{ scale: 1.05 }}
+                                transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                            >
+                                <span>⏱️</span><span>{playlistData.totalDuration} Minutes</span>
+                            </motion.div>
+                        </motion.div>
+
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.6, duration: 0.5 }}
+                            className="button-container"
+                        >
+                            {!playlistAdded ? (
+                                <motion.button
+                                    className="tag add"
+                                    onClick={handleAddToSpotify}
+                                    disabled={isCreatingPlaylist}
+                                    whileHover={!isCreatingPlaylist ? { scale: 1.02 } : {}}
+                                    whileTap={!isCreatingPlaylist ? { scale: 0.98 } : {}}
+                                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                                    animate={isCreatingPlaylist ? {
+                                        backgroundColor: "var(--secondary-600)"
+                                    } : {}}
+                                >
+                                    <motion.span
+                                        animate={isCreatingPlaylist ? { rotate: 360 } : {}}
+                                        transition={isCreatingPlaylist ? {
+                                            duration: 1,
+                                            repeat: Infinity,
+                                            ease: "linear"
+                                        } : {}}
+                                    >
+                                        {isCreatingPlaylist ? '⏳' : '💿'}
+                                    </motion.span>
+                                    <span>{isCreatingPlaylist ? 'Creating...' : 'Add to Spotify'}</span>
+                                </motion.button>
+                            ) : (
+                                <motion.button
+                                    className="tag back add"
+                                    onClick={handleBackToHome}
+                                    whileHover={{ scale: 1.02 }}
+                                    whileTap={{ scale: 0.98 }}
+                                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                                    initial={{ opacity: 0, scale: 0.8 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                >
+                                    <span>🏠</span>
+                                    <span>Create Another Playlist</span>
+                                </motion.button>
+                            )}
+                        </motion.div>
+                    </motion.div>
+                </motion.div>
+
+                <motion.div
+                    className="song-container"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.4, duration: 0.6 }}
+                >
                     {playlistData.tracks.map((track, index) => (
                         <motion.div
                             key={track.id}
@@ -160,11 +316,17 @@ function Playlist() {
                             variants={songVariants}
                             initial="initial"
                             animate="animate"
-                            transition={{ delay: index * 0.05 }}
+                            transition={{ delay: 0.7 + index * 0.05 }}
+                            whileHover={{
+                                scale: 1.01,
+                                backgroundColor: "rgba(139, 61, 27, 0.1)"
+                            }}
                         >
-                            <div className="song-inner">
-                                <div
+                            <motion.div className="song-inner">
+                                <motion.div
                                     className="cover"
+                                    whileHover={{ scale: 1.1 }}
+                                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
                                     style={{
                                         backgroundImage: track.cover_url ?
                                             `url(${track.cover_url})` :
@@ -172,19 +334,55 @@ function Playlist() {
                                         backgroundSize: 'cover',
                                         backgroundPosition: 'center'
                                     }}
-                                ></div>
+                                />
                                 <div className="song-data">
                                     <div className="title">{track.name}</div>
                                     <div className="artist">{track.artist}</div>
                                 </div>
                                 <div className="duration">{track.durationFormatted}</div>
-                            </div>
+                            </motion.div>
                             <hr />
                         </motion.div>
                     ))}
-                </div>
+                </motion.div>
             </motion.div>
-            <div className={`gradient ${showBottomGradient ? 'visible' : ''}`}></div>
+
+            <motion.div
+                className={`gradient ${showBottomGradient ? 'visible' : ''}`}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: showBottomGradient ? 0.7 : 0 }}
+                transition={{ duration: 0.3 }}
+            />
+
+            {/* Notification Overlay */}
+            <AnimatePresence>
+                {notification && (
+                    <motion.div
+                        className="notification-overlay"
+                        variants={overlayVariants}
+                        initial="initial"
+                        animate="animate"
+                        exit="exit"
+                    >
+                        <motion.div
+                            className={`notification ${notification.type}`}
+                            variants={notificationVariants}
+                            initial="initial"
+                            animate="animate"
+                            exit="exit"
+                        >
+                            <div className="notification-content">
+                                <span className="notification-icon">
+                                    {notification.type === 'success' ? '✅' : '❌'}
+                                </span>
+                                <span className="notification-message">
+                                    {notification.message}
+                                </span>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </main>
     )
 }

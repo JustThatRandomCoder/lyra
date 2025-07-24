@@ -150,8 +150,8 @@ h1 {
     gap: 1rem;
 }
 
-.playlist-header>.information-container>.add {
-    margin-top: 2rem;
+.playlist-header>.information-container>.button-container>.add {
+    margin-top: 2rem !important;
     font-size: 1.4rem !important;
     padding: 0.7rem 2rem;
     background-color: var(--secondary-800) !important;
@@ -159,11 +159,11 @@ h1 {
     transition: background-color 0.3s ease !important;
 }
 
-.playlist-header>.information-container>.add:hover {
+.playlist-header>.information-container>.button-container>.add:hover {
     background-color: var(--secondary-700) !important;
 }
 
-.playlist-header>.information-container>.add::before {
+.playlist-header>.information-container>.button-container>.add::before {
     background: none !important;
 }
 
@@ -241,4 +241,171 @@ h1 {
     bottom: 1rem;
     font-weight: 600;
     color: var(--text-400);
+}
+
+/* Loading States */
+.loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    color: var(--text);
+}
+
+.loading-spinner {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.loading-container p {
+    font-size: 1.2rem;
+    color: var(--text-400);
+}
+
+/* Button Container */
+.button-container {
+    display: flex;
+    gap: 1rem;
+}
+
+/* Back Button */
+.playlist-header>.information-container>.back {
+    margin-top: 2rem;
+    font-size: 1.4rem !important;
+    padding: 0.7rem 2rem;
+    background-color: var(--accent-700) !important;
+    background: var(--accent-700) !important;
+    transition: all 0.3s ease !important;
+    border: 2px solid var(--accent-500);
+}
+
+.playlist-header>.information-container>.back:hover {
+    background-color: var(--accent-600) !important;
+    border-color: var(--accent-400);
+    transform: translateY(-2px);
+}
+
+.playlist-header>.information-container>.back::before {
+    background: none !important;
+}
+
+/* Enhanced hover effects for song items */
+.song-container>.song-outer {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 12px;
+    cursor: pointer;
+}
+
+/* Notification Overlay */
+.notification-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+}
+
+.notification {
+    max-width: 400px;
+    margin: 0 2rem;
+    padding: 2rem;
+    border-radius: 16px;
+    color: var(--text);
+    position: relative;
+    overflow: hidden;
+}
+
+.notification.success {
+    background: linear-gradient(135deg, var(--accent-800), var(--accent-900));
+    border: 2px solid var(--accent-500);
+}
+
+.notification.error {
+    background: linear-gradient(135deg, #8B0000, #660000);
+    border: 2px solid #FF4444;
+}
+
+.notification::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    padding: 2px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, var(--accent-400), var(--accent-600));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask-composite: exclude;
+    pointer-events: none;
+    z-index: 2;
+}
+
+.notification.error::before {
+    background: linear-gradient(135deg, #FF4444, #FF6666);
+}
+
+.notification-content {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    z-index: 3;
+    position: relative;
+}
+
+.notification-icon {
+    font-size: 2rem;
+    flex-shrink: 0;
+}
+
+.notification-message {
+    font-size: 1.1rem;
+    font-weight: 500;
+    line-height: 1.4;
+}
+
+/* Enhanced cover hover effects */
+.playlist-header .cover {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+}
+
+.song-container .cover {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .playlist-header {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .playlist-header>.information-container {
+        margin-left: 0;
+        margin-top: 2rem;
+    }
+
+    .playlist-header>.cover {
+        width: 15rem;
+        height: 15rem;
+    }
+
+    .notification {
+        margin: 0 1rem;
+        padding: 1.5rem;
+    }
+
+    .notification-message {
+        font-size: 1rem;
+    }
 }

@@ -140,9 +140,8 @@ function Home() {
     const isFormValid = () => {
         return usecase.trim() !== '' &&
             selectedGenres.length > 0 &&
-            selectedMoods.length > 0 &&
-            artists.trim() !== '' &&
-            length.trim() !== '';
+            selectedMoods.length > 0;
+        // Artists and length are now optional
     };
 
     const handleNextClick = async () => {
@@ -332,22 +331,59 @@ function Home() {
                         value={selectedMoods.join(',')}
                     />
                 </motion.div>
+                <motion.div className="usecase" variants={tagVariants}>
+                    <motion.h2
+                        className='headline'
+                        initial={{ opacity: 0, y: 30 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5 }}
+                    >
+                        Playlist Length (Optional)
+                    </motion.h2>
+                    <motion.div
+                        className='tag-container lengths'
+                        variants={containerVariants}
+                        initial="initial"
+                        animate="animate"
+                    >
+                        {[
+                            { value: "short", label: "Quick Mix", emoji: "⚡", desc: "~10 songs" },
+                            { value: "medium", label: "Standard", emoji: "🎵", desc: "~20 songs" },
+                            { value: "long", label: "Extended", emoji: "🎧", desc: "~40 songs" }
+                        ].map((lengthOption) => (
+                            <motion.div
+                                key={lengthOption.value}
+                                className="tag length-tag"
+                                variants={tagVariants}
+                                whileHover="hover"
+                                whileTap="tap"
+                                onClick={() => setLength(lengthOption.value)}
+                                style={{
+                                    backgroundColor: length === lengthOption.value
+                                        ? 'var(--secondary-700)'
+                                        : undefined
+                                }}
+                                transition={{
+                                    type: "spring",
+                                    stiffness: 400,
+                                    damping: 22
+                                }}
+                            >
+                                <span>{lengthOption.emoji}</span>
+                                <div className="length-info">
+                                    <span className="length-label">{lengthOption.label}</span>
+                                    <span className="length-desc">{lengthOption.desc}</span>
+                                </div>
+                            </motion.div>
+                        ))}
+                    </motion.div>
+                </motion.div>
                 <motion.div className="input-row" variants={tagVariants}>
                     <motion.div className="input-gradient-border" variants={tagVariants}>
                         <motion.input
-                            placeholder="What artists do you prefer?"
+                            placeholder="What artists do you prefer? (Optional)"
                             value={artists}
                             onChange={handleArtistsChange}
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.1, duration: 0.4 }}
-                        />
-                    </motion.div>
-                    <motion.div className="input-gradient-border" variants={tagVariants}>
-                        <motion.input
-                            placeholder="How long should the playlist be?"
-                            value={length}
-                            onChange={handleLengthChange}
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.1, duration: 0.4 }}
