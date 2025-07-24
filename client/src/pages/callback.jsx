@@ -17,7 +17,10 @@ function Callback() {
                 .then(res => res.json())
                 .then(data => {
                     console.log('Spotify login successful!');
-                    console.log('Playlist URL:', data.playlistUrl);
+                    // Store the access token for later use
+                    if (data.access_token) {
+                        localStorage.setItem('spotify_access_token', data.access_token);
+                    }
                     navigate('/home');
                 })
                 .catch(err => {

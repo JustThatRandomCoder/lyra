@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion'
+import { useNavigate } from 'react-router-dom';
 import '../styles/home.css';
 
 const TAGS = [
@@ -66,6 +67,7 @@ const MOODS = [
 ];
 
 function Home() {
+    const navigate = useNavigate();
     const [usecase, setUsecase] = useState('');
     const [selectedTag, setSelectedTag] = useState(null);
     const [selectedGenres, setSelectedGenres] = useState([]);
@@ -162,7 +164,6 @@ function Home() {
             });
 
             console.log('Response status:', res.status);
-            console.log('Response headers:', res.headers);
 
             if (!res.ok) {
                 const errorText = await res.text();
@@ -171,15 +172,14 @@ function Home() {
             }
 
             const data = await res.json();
-            console.log("🎧 Deine Playlist-Suche:", data);
-            console.log("🔊 Gefundene Tracks:", data.tracks);
+            console.log("🎧 Playlist generated:", data);
 
-            // Optional: Du kannst ein Fenster öffnen
-            if (data.playlistUrl) {
-                window.open(data.playlistUrl, '_blank');
-            }
+            // Store the playlist data and redirect to playlist page
+            localStorage.setItem('generatedPlaylist', JSON.stringify(data));
+            navigate('/playlist');
+
         } catch (err) {
-            console.error("❌ Fehler beim Suchen:", err);
+            console.error("❌ Error generating playlist:", err);
         }
     };
 

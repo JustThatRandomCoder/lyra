@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion'
+import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import '../styles/playlist.css';
 
 const containerVariants = {
@@ -12,11 +13,28 @@ const containerVariants = {
     }
 };
 
+const songVariants = {
+    initial: { opacity: 0, y: 20 },
+    animate: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 400, damping: 30 } }
+};
+
 function Playlist() {
+    const navigate = useNavigate();
     const [showTopGradient, setShowTopGradient] = useState(false);
     const [showBottomGradient, setShowBottomGradient] = useState(true);
+    const [playlistData, setPlaylistData] = useState(null);
+    const [isCreatingPlaylist, setIsCreatingPlaylist] = useState(false);
 
     useEffect(() => {
+        // Load playlist data from localStorage
+        const storedData = localStorage.getItem('generatedPlaylist');
+        if (storedData) {
+            setPlaylistData(JSON.parse(storedData));
+        } else {
+            // No playlist data, redirect to home
+            navigate('/home');
+        }
+
         const handleScroll = () => {
             const scrollTop = window.scrollY || document.documentElement.scrollTop;
             const scrollHeight = document.documentElement.scrollHeight;
@@ -28,7 +46,63 @@ function Playlist() {
 
         window.addEventListener('scroll', handleScroll);
         return () => window.removeEventListener('scroll', handleScroll);
-    }, []);
+    }, [navigate]);
+
+    const handleAddToSpotify = async () => {
+        const accessToken = localStorage.getItem('spotify_access_token');
+
+        if (!accessToken) {
+            alert('Please connect to Spotify first');
+            navigate('/');
+            return;
+        }
+
+        if (!playlistData) {
+            alert('No playlist data available');
+            return;
+        }
+
+        setIsCreatingPlaylist(true);
+
+        try {
+            const response = await fetch('/api/spotify/create-playlist', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    playlistName: playlistData.playlistName,
+                    tracks: playlistData.tracks,
+                    accessToken: accessToken
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to create playlist');
+            }
+
+            const data = await response.json();
+
+            // Open Spotify playlist in new tab
+            if (data.playlistUrl) {
+                window.open(data.playlistUrl, '_blank');
+            }
+
+            // Clear stored data
+            localStorage.removeItem('generatedPlaylist');
+
+            alert('Playlist created successfully and added to your Spotify library!');
+            navigate('/home');
+
+        } catch (error) {
+            console.error('Error creating playlist:', error);
+            alert('Failed to create playlist. Please try again.');
+        } finally {
+            setIsCreatingPlaylist(false);
+        }
+    };
+
+    if (!playlistData) {
+        return <div>Loading...</div>;
+    }
 
     return (
         <main>
@@ -39,7 +113,7 @@ function Playlist() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
             >
-                Create
+                Your Playlist
             </motion.h1>
             <motion.div
                 className='container'
@@ -48,32 +122,66 @@ function Playlist() {
                 variants={containerVariants}
             >
                 <div className="playlist-header">
-                    <div className="cover"></div>
+                    <div
+                        className="cover"
+                        style={{
+                            backgroundImage: playlistData.tracks[0]?.cover_url ?
+                                `url(${playlistData.tracks[0].cover_url})` :
+                                'linear-gradient(90deg, var(--primary-800), var(--primary-900))',
+                            backgroundSize: 'cover',
+                            backgroundPosition: 'center'
+                        }}
+                    ></div>
                     <div className="information-container">
-                        <div className="title">Your VibeMix Playlist</div>
+                        <div className="title">{playlistData.playlistName}</div>
                         <div className="general">
                             <div className="tag">
-                                <span>🎧</span><span>20 Songs</span>
+                                <span>🎧</span><span>{playlistData.totalTracks} Songs</span>
                             </div>
                             <div className="tag">
-                                <span>⏱️</span><span>65 Minutes</span>
+                                <span>⏱️</span><span>{playlistData.totalDuration} Minutes</span>
                             </div>
                         </div>
-                        <button className="tag add"><span>💿</span><span>Add to Spotify</span></button>
+                        <button
+                            className="tag add"
+                            onClick={handleAddToSpotify}
+                            disabled={isCreatingPlaylist}
+                        >
+                            <span>💿</span>
+                            <span>{isCreatingPlaylist ? 'Creating...' : 'Add to Spotify'}</span>
+                        </button>
                     </div>
                 </div>
                 <div className="song-container">
-                    <div className="song-outer" id='song'>
-                        <div className="song-inner">
-                            <div className="cover"></div>
-                            <div className="song-data">
-                                <div className="title">Enter Sandman</div>
-                                <div className="artist">Metallica</div>
+                    {playlistData.tracks.map((track, index) => (
+                        <motion.div
+                            key={track.id}
+                            className="song-outer"
+                            variants={songVariants}
+                            initial="initial"
+                            animate="animate"
+                            transition={{ delay: index * 0.05 }}
+                        >
+                            <div className="song-inner">
+                                <div
+                                    className="cover"
+                                    style={{
+                                        backgroundImage: track.cover_url ?
+                                            `url(${track.cover_url})` :
+                                            'linear-gradient(90deg, var(--primary-800), var(--primary-900))',
+                                        backgroundSize: 'cover',
+                                        backgroundPosition: 'center'
+                                    }}
+                                ></div>
+                                <div className="song-data">
+                                    <div className="title">{track.name}</div>
+                                    <div className="artist">{track.artist}</div>
+                                </div>
+                                <div className="duration">{track.durationFormatted}</div>
                             </div>
-                            <div className="duration">5:30</div>
-                        </div>
-                        <hr />
-                    </div>
+                            <hr />
+                        </motion.div>
+                    ))}
                 </div>
             </motion.div>
             <div className={`gradient ${showBottomGradient ? 'visible' : ''}`}></div>
