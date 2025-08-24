@@ -89,15 +89,6 @@ This code is the intellectual property of Julius Grimm. It is provided as a case
 
 ---
 
-## 📚 Case Study Notes
-
-- Demonstrates integration of AI APIs (Groq) with music services (Spotify)
-- Shows advanced UI/UX with React, Vite, and CSS animations
-- Example of secure API key management and fallback logic
-- Illustrates best practices for modern full-stack app development
-
----
-
 ## 📝 Author
 
 **Julius Grimm**
