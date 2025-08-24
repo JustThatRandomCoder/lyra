@@ -27,7 +27,7 @@ Lyra is an intelligent playlist generator that uses Groq AI to create genre- and
 ### 1. **Clone the Repository**
 
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/JustThatRandomCoder/lyra
 cd lyra
 ```
 
