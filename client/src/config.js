@@ -1,7 +1,7 @@
 // Centralized configuration for ngrok URL
 // Update this URL when you get a new ngrok URL
 export const CONFIG = {
-  NGROK_URL: 'https://3ae0bb7f9234.ngrok-free.app'
+  NGROK_URL: 'https://9b61ed569fe0.ngrok-free.app'
 };
 
 // Derived URLs

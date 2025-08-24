@@ -7,28 +7,89 @@ const containerVariants = {
     initial: {},
     animate: {
         transition: {
-            staggerChildren: 0.08,
-            delayChildren: 0.2
+            staggerChildren: 0.05,
+            delayChildren: 0.15
         }
     }
 };
 
 const songVariants = {
-    initial: { opacity: 0, y: 20 },
-    animate: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 400, damping: 30 } }
+    initial: { opacity: 0, y: 30, scale: 0.95 },
+    animate: {
+        opacity: 1,
+        y: 0,
+        scale: 1,
+        transition: {
+            type: "spring",
+            stiffness: 500,
+            damping: 35,
+            mass: 1
+        }
+    },
+    hover: {
+        scale: 1.02,
+        transition: { type: "spring", stiffness: 400, damping: 25 }
+    },
+    tap: {
+        scale: 0.98,
+        transition: { type: "spring", stiffness: 500, damping: 30 }
+    }
 };
 
 const headerVariants = {
-    initial: { opacity: 0, scale: 0.95 },
+    initial: { opacity: 0, y: -30, scale: 0.9 },
+    animate: {
+        opacity: 1,
+        y: 0,
+        scale: 1,
+        transition: {
+            type: "spring",
+            stiffness: 400,
+            damping: 30,
+            delay: 0.05
+        }
+    }
+};
+
+const imageVariants = {
+    initial: { opacity: 0, scale: 0.8, rotate: -5 },
+    animate: {
+        opacity: 1,
+        scale: 1,
+        rotate: 0,
+        transition: {
+            type: "spring",
+            stiffness: 300,
+            damping: 25,
+            delay: 0.1
+        }
+    },
+    hover: {
+        scale: 1.05,
+        rotate: 2,
+        transition: { type: "spring", stiffness: 400, damping: 25 }
+    }
+};
+
+const buttonVariants = {
+    initial: { opacity: 0, scale: 0.9 },
     animate: {
         opacity: 1,
         scale: 1,
         transition: {
             type: "spring",
-            stiffness: 300,
+            stiffness: 400,
             damping: 30,
-            delay: 0.1
+            delay: 0.3
         }
+    },
+    hover: {
+        scale: 1.05,
+        transition: { type: "spring", stiffness: 400, damping: 25 }
+    },
+    tap: {
+        scale: 0.95,
+        transition: { type: "spring", stiffness: 500, damping: 30 }
     }
 };
 
@@ -207,12 +268,16 @@ function Playlist() {
                 >
                     <motion.div
                         className="cover"
-                        whileHover={{ scale: 1.02 }}
-                        transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                        variants={imageVariants}
+                        initial="initial"
+                        animate="animate"
+                        whileHover="hover"
                         style={{
-                            backgroundImage: playlistData.tracks[0]?.cover_url ?
-                                `url(${playlistData.tracks[0].cover_url})` :
-                                'linear-gradient(90deg, var(--primary-800), var(--primary-900))',
+                            backgroundImage: playlistData.playlistImage ?
+                                `url(${playlistData.playlistImage})` :
+                                playlistData.tracks[0]?.cover_url ?
+                                    `url(${playlistData.tracks[0].cover_url})` :
+                                    'linear-gradient(90deg, var(--primary-800), var(--primary-900))',
                             backgroundSize: 'cover',
                             backgroundPosition: 'center'
                         }}
@@ -266,12 +331,11 @@ function Playlist() {
                                     className="tag add"
                                     onClick={handleAddToSpotify}
                                     disabled={isCreatingPlaylist}
-                                    whileHover={!isCreatingPlaylist ? { scale: 1.02 } : {}}
-                                    whileTap={!isCreatingPlaylist ? { scale: 0.98 } : {}}
-                                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                                    animate={isCreatingPlaylist ? {
-                                        backgroundColor: "var(--secondary-600)"
-                                    } : {}}
+                                    variants={buttonVariants}
+                                    initial="initial"
+                                    animate="animate"
+                                    whileHover={!isCreatingPlaylist ? "hover" : {}}
+                                    whileTap={!isCreatingPlaylist ? "tap" : {}}
                                 >
                                     <motion.span
                                         animate={isCreatingPlaylist ? { rotate: 360 } : {}}
@@ -316,17 +380,16 @@ function Playlist() {
                             variants={songVariants}
                             initial="initial"
                             animate="animate"
-                            transition={{ delay: 0.7 + index * 0.05 }}
-                            whileHover={{
-                                scale: 1.01,
-                                backgroundColor: "rgba(139, 61, 27, 0.1)"
-                            }}
+                            whileHover="hover"
+                            whileTap="tap"
                         >
                             <motion.div className="song-inner">
                                 <motion.div
                                     className="cover"
-                                    whileHover={{ scale: 1.1 }}
-                                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                                    whileHover={{
+                                        scale: 1.1,
+                                        transition: { type: "spring", stiffness: 500, damping: 25 }
+                                    }}
                                     style={{
                                         backgroundImage: track.cover_url ?
                                             `url(${track.cover_url})` :
@@ -335,13 +398,47 @@ function Playlist() {
                                         backgroundPosition: 'center'
                                     }}
                                 />
-                                <div className="song-data">
-                                    <div className="title">{track.name}</div>
-                                    <div className="artist">{track.artist}</div>
-                                </div>
-                                <div className="duration">{track.durationFormatted}</div>
+                                <motion.div
+                                    className="song-data"
+                                    initial={{ opacity: 0, x: -10 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: 0.2 + index * 0.02 }}
+                                >
+                                    <motion.div
+                                        className="title"
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        transition={{ delay: 0.3 + index * 0.02 }}
+                                    >
+                                        {track.name}
+                                    </motion.div>
+                                    <motion.div
+                                        className="artist"
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        transition={{ delay: 0.4 + index * 0.02 }}
+                                    >
+                                        {track.artist}
+                                    </motion.div>
+                                </motion.div>
+                                <motion.div
+                                    className="duration"
+                                    initial={{ opacity: 0, x: 10 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: 0.25 + index * 0.02 }}
+                                >
+                                    {track.durationFormatted}
+                                </motion.div>
                             </motion.div>
-                            <hr />
+                            <motion.hr
+                                initial={{ scaleX: 0 }}
+                                animate={{ scaleX: 1 }}
+                                transition={{
+                                    delay: 0.5 + index * 0.02,
+                                    duration: 0.3,
+                                    ease: "easeOut"
+                                }}
+                            />
                         </motion.div>
                     ))}
                 </motion.div>

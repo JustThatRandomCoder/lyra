@@ -178,6 +178,9 @@ h1 {
 .song-container>.song-outer {
     display: flex;
     flex-direction: column !important;
+    transform-origin: center;
+    will-change: transform, background-color;
+    transition: all 0.2s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 .song-container>.song-outer>hr {
@@ -195,11 +198,14 @@ h1 {
 }
 
 .song-container>.song-outer>.song-inner>.cover {
-    width: 3rem;
-    height: 3rem;
+    width: 60px;
+    height: 60px;
     border-radius: 9px;
     background: linear-gradient(90deg, var(--primary-800), var(--primary-900));
     position: relative;
+    overflow: hidden;
+    will-change: transform;
+    transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
 .song-container>.song-outer>.song-inner>.cover::before {
@@ -243,7 +249,6 @@ h1 {
     color: var(--text-400);
 }
 
-/* Loading States */
 .loading-container {
     display: flex;
     flex-direction: column;
@@ -263,13 +268,11 @@ h1 {
     color: var(--text-400);
 }
 
-/* Button Container */
 .button-container {
     display: flex;
     gap: 1rem;
 }
 
-/* Back Button */
 .playlist-header>.information-container>.back {
     margin-top: 2rem;
     font-size: 1.4rem !important;
@@ -290,14 +293,12 @@ h1 {
     background: none !important;
 }
 
-/* Enhanced hover effects for song items */
 .song-container>.song-outer {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     border-radius: 12px;
     cursor: pointer;
 }
 
-/* Notification Overlay */
 .notification-overlay {
     position: fixed;
     top: 0;
@@ -371,7 +372,6 @@ h1 {
     line-height: 1.4;
 }
 
-/* Enhanced cover hover effects */
 .playlist-header .cover {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     overflow: hidden;
@@ -382,7 +382,6 @@ h1 {
     overflow: hidden;
 }
 
-/* Responsive Design */
 @media (max-width: 768px) {
     .playlist-header {
         flex-direction: column;
@@ -408,4 +407,19 @@ h1 {
     .notification-message {
         font-size: 1rem;
     }
+}
+
+.ai-tag {
+    background: linear-gradient(135deg, var(--accent-600), var(--accent-700)) !important;
+    border: 2px solid var(--accent-400) !important;
+    color: var(--text-50) !important;
+    font-weight: 600 !important;
+    box-shadow: 0 4px 12px rgba(235, 95, 31, 0.3) !important;
+}
+
+.ai-tag:hover {
+    background: linear-gradient(135deg, var(--accent-500), var(--accent-600)) !important;
+    border-color: var(--accent-300) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 16px rgba(235, 95, 31, 0.4) !important;
 }

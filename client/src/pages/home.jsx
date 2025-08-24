@@ -48,7 +48,14 @@ const GENRES = [
     { value: "disco", label: "Disco" },
     { value: "latin", label: "Latin" },
     { value: "house", label: "House" },
-    { value: "techno", label: "Techno" }
+    { value: "techno", label: "Techno" },
+    { value: "lofi", label: "Lo-Fi" },
+    { value: "ambient", label: "Ambient" },
+    { value: "chillhop", label: "Chillhop" },
+    { value: "study", label: "Study Beats" },
+    { value: "nature", label: "Nature Sounds" },
+    { value: "whitenoise", label: "White Noise" },
+    { value: "instrumental", label: "Instrumental" }
 ];
 
 const MOODS = [
@@ -76,6 +83,7 @@ function Home() {
     const [length, setLength] = useState('');
     const [showTopGradient, setShowTopGradient] = useState(false);
     const [showBottomGradient, setShowBottomGradient] = useState(true);
+    const [isGenerating, setIsGenerating] = useState(false);
 
     useEffect(() => {
         const handleScroll = () => {
@@ -145,7 +153,9 @@ function Home() {
     };
 
     const handleNextClick = async () => {
-        if (!isFormValid()) return;
+        if (!isFormValid() || isGenerating) return;
+
+        setIsGenerating(true);
 
         const payload = {
             usecase: usecase.trim(),
@@ -171,7 +181,7 @@ function Home() {
             }
 
             const data = await res.json();
-            console.log("🎧 Playlist generated:", data);
+            console.log("🎧 AI-generated playlist:", data);
 
             // Store the playlist data and redirect to playlist page
             localStorage.setItem('generatedPlaylist', JSON.stringify(data));
@@ -179,6 +189,8 @@ function Home() {
 
         } catch (err) {
             console.error("❌ Error generating playlist:", err);
+        } finally {
+            setIsGenerating(false);
         }
     };
 
@@ -398,24 +410,38 @@ function Home() {
                 transition={{ delay: 0.4, duration: 0.4 }}
             >
                 <motion.button
-                    whileHover={isFormValid() ? { scale: 1.02 } : {}}
-                    whileTap={isFormValid() ? { scale: 0.97 } : {}}
+                    whileHover={isFormValid() && !isGenerating ? { scale: 1.02 } : {}}
+                    whileTap={isFormValid() && !isGenerating ? { scale: 0.97 } : {}}
                     transition={{
                         type: "spring",
                         stiffness: 400,
                         damping: 22
                     }}
-                    disabled={!isFormValid()}
+                    disabled={!isFormValid() || isGenerating}
                     onClick={handleNextClick}
                     animate={{
-                        opacity: isFormValid() ? 1 : 0.5
+                        opacity: isFormValid() ? 1 : 0.5,
+                        backgroundColor: isGenerating ? "var(--secondary-600)" : undefined
                     }}
                     style={{
-                        cursor: isFormValid() ? 'pointer' : 'not-allowed'
+                        cursor: isFormValid() && !isGenerating ? 'pointer' : 'not-allowed'
                     }}
                     initial={false}
                 >
-                    Next
+                    {isGenerating ? (
+                        <>
+                            <motion.span
+                                animate={{ rotate: 360 }}
+                                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                                style={{ marginRight: '0.5rem' }}
+                            >
+                                🤖
+                            </motion.span>
+                            AI is creating your playlist...
+                        </>
+                    ) : (
+                        'Generate with AI'
+                    )}
                 </motion.button>
             </motion.div>
             <div className={`gradient ${showBottomGradient ? 'visible' : ''}`}></div>

@@ -1,12 +1,12 @@
 const axios = require('axios');
 const qs = require('qs');
 const { SPOTIFY_REDIRECT_URI } = require('../config');
+const { generatePlaylistRecommendations, generatePlaylistImage } = require('./musicService');
 
 const exchangeCodeAndCreatePlaylist = async (req, res) => {
     const { code } = req.body;
 
     try {
-        // 1. Exchange code for access token
         const tokenResponse = await axios.post(
             'https://accounts.spotify.com/api/token',
             qs.stringify({
@@ -23,7 +23,6 @@ const exchangeCodeAndCreatePlaylist = async (req, res) => {
 
         const { access_token } = tokenResponse.data;
 
-        // Return the access token instead of creating a playlist immediately
         res.json({
             access_token: access_token,
             message: 'Authentication successful'
@@ -38,7 +37,11 @@ const generatePlaylist = async (req, res) => {
     const { usecase, genre, mood, artists, length } = req.body;
 
     try {
-        // Get client credentials access token
+        console.log('🎵 Starting playlist generation with curated music database...');
+
+        const musicResponse = await generatePlaylistRecommendations(usecase, genre, mood, artists, length);
+        console.log(`✅ Selected ${musicResponse.songs.length} songs from curated database`);
+
         const tokenResponse = await axios.post(
             'https://accounts.spotify.com/api/token',
             qs.stringify({
@@ -53,104 +56,80 @@ const generatePlaylist = async (req, res) => {
 
         const { access_token } = tokenResponse.data;
 
-        // Calculate desired number of tracks based on length
-        const getTrackLimit = (length) => {
-            if (!length || length.trim() === '') return 20; // Default
+        const spotifyTracks = [];
+        const searchPromises = musicResponse.songs.map(async (song) => {
+            try {
+                const searchQuery = `${song.title} ${song.artist}`;
+                console.log(`Searching Spotify for: ${searchQuery}`);
 
-            const lengthLower = length.toLowerCase();
-            if (lengthLower.includes('short') || lengthLower.includes('quick')) return 10;
-            if (lengthLower.includes('long') || lengthLower.includes('extended')) return 40;
-            if (lengthLower.includes('medium') || lengthLower.includes('normal')) return 20;
+                const searchResponse = await axios.get(
+                    `https://api.spotify.com/v1/search?q=${encodeURIComponent(searchQuery)}&type=track&limit=1`,
+                    {
+                        headers: { Authorization: `Bearer ${access_token}` },
+                    }
+                );
 
-            // Try to extract minutes if specified
-            const minuteMatch = lengthLower.match(/(\d+)\s*(min|minute)/);
-            if (minuteMatch) {
-                const minutes = parseInt(minuteMatch[1]);
-                return Math.max(5, Math.min(50, Math.round(minutes / 3))); // Roughly 3 minutes per song
+                const tracks = searchResponse.data.tracks.items;
+                if (tracks.length > 0) {
+                    const track = tracks[0];
+                    return {
+                        id: track.id,
+                        name: track.name,
+                        artist: track.artists[0].name,
+                        album: track.album.name,
+                        duration: Math.round(track.duration_ms / 1000),
+                        durationFormatted: `${Math.floor(track.duration_ms / 60000)}:${String(Math.floor((track.duration_ms % 60000) / 1000)).padStart(2, '0')}`,
+                        spotify_url: track.external_urls.spotify,
+                        spotify_uri: track.uri,
+                        cover_url: track.album.images[0]?.url || null,
+                        preview_url: track.preview_url,
+                        originalRecommendation: song
+                    };
+                } else {
+                    console.log(`No Spotify match found for: ${searchQuery}`);
+                    return null;
+                }
+            } catch (error) {
+                console.error(`Error searching for ${song.title} by ${song.artist}:`, error.message);
+                return null;
             }
+        });
 
-            return 20; // Default fallback
-        };
+        const searchResults = await Promise.all(searchPromises);
+        const foundTracks = searchResults.filter(track => track !== null);
 
-        const trackLimit = getTrackLimit(length);
+        console.log(`✅ Found ${foundTracks.length} tracks on Spotify out of ${musicResponse.songs.length} recommendations`);
 
-        // Create a better search query that works with Spotify's search API
-        // Artists are now optional
-        const searchTerms = [...genre, ...mood];
-        if (artists && artists.trim()) {
-            searchTerms.push(artists.trim());
-        }
-
-        const searchQuery = searchTerms.filter(term => term && term.trim()).join(' ');
-
-        console.log('Search query:', searchQuery);
-        console.log('Track limit:', trackLimit);
-
-        const searchResponse = await axios.get(
-            `https://api.spotify.com/v1/search?q=${encodeURIComponent(searchQuery)}&type=track&limit=${trackLimit}`,
-            {
-                headers: { Authorization: `Bearer ${access_token}` },
-            }
-        );
-
-        const tracks = searchResponse.data.tracks.items;
-
-        console.log(`Found ${tracks.length} tracks`);
-
-        // Calculate total duration in milliseconds
-        const totalDurationMs = tracks.reduce((sum, track) => sum + track.duration_ms, 0);
+        const totalDurationMs = foundTracks.reduce((sum, track) => sum + (track.duration * 1000), 0);
         const totalMinutes = Math.round(totalDurationMs / 60000);
 
-        // Generate a custom playlist name based on criteria
-        const generatePlaylistName = () => {
-            const moodEmojis = {
-                happy: '😊', sad: '😢', energetic: '⚡', calm: '🧘', romantic: '💕',
-                melancholic: '🌧️', upbeat: '🎉', chill: '😎', aggressive: '🔥',
-                nostalgic: '📻', motivated: '💪', peaceful: '🕊️'
-            };
-
-            const genreNames = {
-                pop: 'Pop', rock: 'Rock', hiphop: 'Hip-Hop', jazz: 'Jazz',
-                classical: 'Classical', electronic: 'Electronic', country: 'Country',
-                reggae: 'Reggae', blues: 'Blues', metal: 'Metal', folk: 'Folk',
-                rnb: 'R&B', soul: 'Soul', punk: 'Punk', indie: 'Indie',
-                funk: 'Funk', disco: 'Disco', latin: 'Latin', house: 'House', techno: 'Techno'
-            };
-
-            const primaryMood = mood[0];
-            const primaryGenre = genre[0];
-            const emoji = moodEmojis[primaryMood] || '🎵';
-            const genreName = genreNames[primaryGenre] || primaryGenre;
-
-            return `${emoji} ${usecase.charAt(0).toUpperCase() + usecase.slice(1)} ${genreName} Mix`;
-        };
-
-        // Format tracks with enhanced data including covers
-        const formattedTracks = tracks.map(track => ({
-            id: track.id,
-            name: track.name,
-            artist: track.artists[0].name,
-            album: track.album.name,
-            duration: Math.round(track.duration_ms / 1000), // Duration in seconds
-            durationFormatted: `${Math.floor(track.duration_ms / 60000)}:${String(Math.floor((track.duration_ms % 60000) / 1000)).padStart(2, '0')}`,
-            spotify_url: track.external_urls.spotify,
-            spotify_uri: track.uri,
-            cover_url: track.album.images[0]?.url || null, // Get the largest image
-            preview_url: track.preview_url
-        }));
+        let playlistImageUrl = null;
+        try {
+            console.log('🎨 Generating playlist image...');
+            playlistImageUrl = await generatePlaylistImage(musicResponse.playlistName, usecase, genre, mood);
+        } catch (imageError) {
+            console.log('⚠️ Image generation failed, continuing without image:', imageError.message);
+        }
 
         res.json({
-            message: 'Playlist generated successfully',
+            message: '✅ Playlist generated successfully with curated music database',
             criteria: { usecase, genre, mood, artists, length },
-            searchQuery: searchQuery,
-            playlistName: generatePlaylistName(),
-            totalTracks: tracks.length,
+            playlistName: musicResponse.playlistName,
+            playlistImage: playlistImageUrl,
+            totalTracks: foundTracks.length,
             totalDuration: totalMinutes,
-            tracks: formattedTracks
+            tracks: foundTracks,
+            musicRecommendations: musicResponse.songs,
+            spotifyMatches: foundTracks.length,
+            totalRecommendations: musicResponse.songs.length
         });
+
     } catch (error) {
-        console.error('Error generating playlist:', error.response?.data || error.message);
-        res.status(500).json({ error: 'Failed to generate playlist' });
+        console.error('❌ Error generating playlist:', error);
+        res.status(500).json({
+            error: 'Failed to generate playlist',
+            details: error.message
+        });
     }
 };
 
@@ -162,13 +141,11 @@ const createPlaylistFromTracks = async (req, res) => {
     }
 
     try {
-        // Get user profile info
         const userResponse = await axios.get('https://api.spotify.com/v1/me', {
             headers: { Authorization: `Bearer ${accessToken}` },
         });
         const userId = userResponse.data.id;
 
-        // Create the playlist
         const playlistResponse = await axios.post(
             `https://api.spotify.com/v1/users/${userId}/playlists`,
             {
@@ -182,7 +159,6 @@ const createPlaylistFromTracks = async (req, res) => {
         );
         const playlistId = playlistResponse.data.id;
 
-        // Add tracks to the playlist
         if (tracks && tracks.length > 0) {
             const trackUris = tracks.map(track => track.spotify_uri);
             await axios.post(
